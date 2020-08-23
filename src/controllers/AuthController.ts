@@ -11,18 +11,7 @@ export class AuthController implements AuthAdapter {
     }
 
     async authenticated<T extends UserModel>(options?: AuthOptions): Promise<T> {
-        const user = await this.currentUser();
-        if (user && user.sessionToken) {
-            const getHeaders = this._geHeadersWithToken(user, options);
-            const response = await this.restApi.get<T>(BFastConfig.getInstance().databaseURL(this.appName, '/users/me'), {
-                headers: getHeaders
-            });
-            const data = response.data;
-            data.token = data.sessionToken;
-            return data;
-        } else {
-            return null as any;
-        }
+        return await this.currentUser() as any;
     }
 
     async currentUser<T extends UserModel>(): Promise<T | null> {
@@ -31,7 +20,7 @@ export class AuthController implements AuthAdapter {
 
     async getEmail(): Promise<any> {
         const user = await this.currentUser();
-        if (user && user.email) {
+        if (user && user?.email) {
             return user.email;
         } else {
             return null;
@@ -43,7 +32,7 @@ export class AuthController implements AuthAdapter {
      */
     async getSessionToken(): Promise<any> {
         const user = await this.currentUser();
-        if (user && user.sessionToken) {
+        if (user && user?.sessionToken) {
             return user.sessionToken;
         } else {
             return null;
@@ -52,7 +41,7 @@ export class AuthController implements AuthAdapter {
 
     async getToken(): Promise<any> {
         const user = await this.currentUser();
-        if (user && user.token) {
+        if (user && user?.token) {
             return user.token;
         } else {
             return null;
@@ -61,7 +50,7 @@ export class AuthController implements AuthAdapter {
 
     async getUsername(): Promise<any> {
         const user = await this.currentUser();
-        if (user && user.username) {
+        if (user && user?.username) {
             return user.username;
         } else {
             return null;
@@ -107,7 +96,7 @@ export class AuthController implements AuthAdapter {
 
     async requestPasswordReset<T extends UserModel>(email: string, options?: AuthOptions): Promise<T> {
         const user = await this.currentUser<T>();
-        if (user && user.sessionToken) {
+        if (user && user?.sessionToken) {
             const postHeader = this._geHeadersWithToken(user, options);
             const response = await this.restApi.post(BFastConfig.getInstance().databaseURL(this.appName, '/requestPasswordReset'), {
                 email: user.email ? user.email : email
@@ -122,7 +111,7 @@ export class AuthController implements AuthAdapter {
 
     async signUp<T extends UserModel>(username: string, password: string, attrs: { [key: string]: any }, options?: AuthOptions): Promise<T> {
         const postHeaders = {};
-        if (options && options.useMasterKey) {
+        if (options && options?.useMasterKey) {
             Object.assign(postHeaders, {
                 'X-Parse-Master-Key': BFastConfig.getInstance().getAppCredential(this.appName).appPassword,
             });
@@ -190,7 +179,7 @@ export class AuthController implements AuthAdapter {
     }
 
     async setCurrentUser<T extends UserModel>(user: T): Promise<T | null> {
-        if (user && user.sessionToken) {
+        if (user && user?.sessionToken) {
             user.token = user.sessionToken;
         }
         await this.cacheAdapter.set<T>('_current_user_', user, {
